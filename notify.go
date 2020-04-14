@@ -35,6 +35,31 @@ func GetTradeNotification(req *http.Request, key string) (noti *TradeNotificatio
 	return noti, err
 }
 
+func GetTradeNotificationByAppid(req *http.Request,GetWxPayClient func(appid string) (*Client))(wxClient *Client,noti *TradeNotification, err error) {
+	if req == nil {
+		return nil,nil, errors.New("request 参数不能为空")
+	}
+
+	var data, _ = ioutil.ReadAll(req.Body)
+	if err = xml.Unmarshal(data, &noti); err != nil {
+		return nil,nil, err
+	}
+
+	wxClient = GetWxPayClient(noti.AppId)
+	if wxClient == nil {
+		return nil, nil, errors.New("此appId 没有配置:"+noti.AppId)
+	}
+	key, err := wxClient.getKey()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if _, err := VerifyResponseData(data, key); err != nil {
+		return nil,nil, err
+	}
+	return wxClient,noti,nil
+}
+
 
 func (this *Client) AckNotification(w http.ResponseWriter) {
 	AckNotification(w)
