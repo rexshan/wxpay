@@ -109,6 +109,7 @@ type UnifiedOrderRsp struct {
 	TradeType  string `xml:"trade_type"`
 	CodeURL    string `xml:"code_url"`
 	MWebURL    string `xml:"mweb_url"`
+	TimeStamp  string `xml:"timestamp"`
 }
 
 // 客户端唤起支付所需要的信息：App 支付、微信内H5调起支付(公众号支付)、小程序支付
