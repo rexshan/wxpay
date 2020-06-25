@@ -3,9 +3,13 @@ package wxpay
 import (
 	"bytes"
 	"crypto/md5"
+	"crypto/tls"
 	"encoding/hex"
+	"encoding/pem"
 	"encoding/xml"
 	"errors"
+	"fmt"
+	"golang.org/x/crypto/pkcs12"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -26,7 +30,8 @@ type Client struct {
 	isProduction bool
 }
 
-func New(appId, apiKey, mchId string, isProduction bool) (client *Client) {
+func New(appId, apiKey, mchId,cert string, isProduction bool) (client *Client) {
+	var err error
 	client = &Client{}
 	client.appId = appId
 	client.mchId = mchId
@@ -38,9 +43,34 @@ func New(appId, apiKey, mchId string, isProduction bool) (client *Client) {
 	} else {
 		client.apiDomain = kSandboxURL
 	}
+	client.tlsClient,err = initTLSClient([]byte(cert),mchId)
+	if err != nil {
+		fmt.Println("-----load tls",err.Error())
+	}
 	return client
 }
 
+func initTLSClient(cert []byte, password string) (tlsClient *http.Client, err error) {
+	if len(cert) > 0 {
+		cert, err := pkcs12ToPem(cert, password)
+		if err != nil {
+			return nil, err
+		}
+
+		config := &tls.Config{
+			Certificates: []tls.Certificate{cert},
+		}
+
+		transport := &http.Transport{
+			TLSClientConfig:    config,
+			DisableCompression: true,
+		}
+
+		tlsClient = &http.Client{Transport: transport}
+	}
+
+	return tlsClient, err
+}
 
 func (this *Client) URLValues(param Param, key string) (value url.Values, err error) {
 	var p = param.Params()
@@ -275,3 +305,18 @@ func GetNonceStr() (nonceStr string) {
 	return nonceStr
 }
 
+func pkcs12ToPem(p12 []byte, password string) (cert tls.Certificate, err error) {
+	blocks, err := pkcs12.ToPEM([]byte(p12), password)
+
+	if err != nil {
+		return cert, err
+	}
+
+	var pemData []byte
+	for _, b := range blocks {
+		pemData = append(pemData, pem.EncodeToMemory(b)...)
+	}
+
+	cert, err = tls.X509KeyPair(pemData, pemData)
+	return cert, err
+}
