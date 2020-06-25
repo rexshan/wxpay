@@ -46,6 +46,7 @@ type UnifiedOrderParam struct {
 	OpenId         string // 否 trade_type=JSAPI时（即公众号支付），此参数必传，此参数为微信用户在商户对应appid下的唯一标识。openid如何获取，可参考【获取openid】。企业号请使用【企业号OAuth2.0接口】获取企业号内成员userid，再调用【企业号userid转openid接口】进行转换
 	SceneInfo      string // 否
 	StoreInfo      *StoreInfo
+	ProfitSharing  string //是否分账Y/N
 }
 
 type StoreInfo struct {
@@ -81,6 +82,9 @@ func (this UnifiedOrderParam) Params() url.Values {
 	m.Set("product_id", this.ProductId)
 	m.Set("limit_pay", this.LimitPay)
 	m.Set("openid", this.OpenId)
+	if this.ProfitSharing == "Y" {
+		m.Set("profit_sharing","Y")
+	}
 
 	if this.StoreInfo != nil {
 		var storeInfoByte, err = json.Marshal(this.StoreInfo)
@@ -231,3 +235,4 @@ type DownloadBillRsp struct {
 	ReturnMsg  string `xml:"return_msg"`
 	Data       []byte `xml:"-"`
 }
+
