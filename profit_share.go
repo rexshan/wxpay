@@ -43,7 +43,7 @@ func (this *Client) ProfitSharing(params ProfitSharingParam, option string) (res
 	if option == "multi" {
 		apiPath = StartMulProfit
 	}
-	if err = this.doRequest("POST", this.BuildAPI(apiPath), params, &result); err != nil {
+	if err = this.doRequestWithTLS("POST", this.BuildAPI(apiPath), params, &result); err != nil {
 		return nil, err
 	}
 	return result, err
