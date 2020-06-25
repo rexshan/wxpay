@@ -52,13 +52,13 @@ func New(appId, apiKey, mchId,cert string, isProduction bool) (client *Client) {
 
 func initTLSClient(cert []byte, password string) (tlsClient *http.Client, err error) {
 	if len(cert) > 0 {
-		cert, err := pkcs12ToPem(cert, password)
+		cert, err := PemToCert(cert)
 		if err != nil {
 			return nil, err
 		}
 
 		config := &tls.Config{
-			Certificates: []tls.Certificate{cert},
+			Certificates: []tls.Certificate{*cert},
 		}
 
 		transport := &http.Transport{
@@ -319,4 +319,18 @@ func pkcs12ToPem(p12 []byte, password string) (cert tls.Certificate, err error) 
 
 	cert, err = tls.X509KeyPair(pemData, pemData)
 	return cert, err
+}
+
+func PemToCert(cert []byte)(*tls.Certificate,error) {
+	var certTls tls.Certificate
+	certDERBlock, restPEMBlock := pem.Decode(cert)
+	if certDERBlock == nil {
+		return nil,errors.New("kong")
+	}
+	certTls.Certificate = append(certTls.Certificate, certDERBlock.Bytes)
+	certDERBlockChain, _ := pem.Decode(restPEMBlock)
+	if certDERBlockChain != nil {
+		certTls.Certificate = append(certTls.Certificate, certDERBlockChain.Bytes)
+	}
+	return &certTls,nil
 }
