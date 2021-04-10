@@ -9,7 +9,6 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/pkcs12"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -307,21 +306,6 @@ func GetNonceStr() (nonceStr string) {
 	return nonceStr
 }
 
-func pkcs12ToPem(p12 []byte, password string) (cert tls.Certificate, err error) {
-	blocks, err := pkcs12.ToPEM([]byte(p12), password)
-
-	if err != nil {
-		return cert, err
-	}
-
-	var pemData []byte
-	for _, b := range blocks {
-		pemData = append(pemData, pem.EncodeToMemory(b)...)
-	}
-
-	cert, err = tls.X509KeyPair(pemData, pemData)
-	return cert, err
-}
 
 func PemToCert(cert []byte)(*tls.Certificate,error) {
 	var certTls tls.Certificate
