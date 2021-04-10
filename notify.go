@@ -35,7 +35,7 @@ func GetTradeNotification(req *http.Request, key string) (noti *TradeNotificatio
 	return noti, err
 }
 
-func GetTradeNotificationByAppid(req *http.Request,GetWxPayClient func(appid string) (*Client))(wxClient *Client,noti *TradeNotification, err error) {
+func GetTradeNotificationByAppid(req *http.Request,GetWxPayClient func(appid, MchId string) (*Client))(wxClient *Client,noti *TradeNotification, err error) {
 	if req == nil {
 		return nil,nil, errors.New("request 参数不能为空")
 	}
@@ -45,7 +45,7 @@ func GetTradeNotificationByAppid(req *http.Request,GetWxPayClient func(appid str
 		return nil,nil, err
 	}
 
-	wxClient = GetWxPayClient(noti.AppId)
+	wxClient = GetWxPayClient(noti.AppId, noti.MCHId)
 	if wxClient == nil {
 		return nil, nil, errors.New("此appId 没有配置:"+noti.AppId)
 	}
