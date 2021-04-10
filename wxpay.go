@@ -43,9 +43,11 @@ func New(appId, apiKey, mchId,cert string, isProduction bool) (client *Client) {
 	} else {
 		client.apiDomain = kSandboxURL
 	}
-	client.tlsClient,err = initTLSClient([]byte(cert),mchId)
-	if err != nil {
-		fmt.Println("-----load tls",err.Error())
+	if len(cert) > 0 {
+		client.tlsClient,err = initTLSClient([]byte(cert),mchId)
+		if err != nil {
+			fmt.Println("-----load tls",err.Error())
+		}
 	}
 	return client
 }
